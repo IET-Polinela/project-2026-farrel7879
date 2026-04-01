@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Laporan</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="container mt-5">
+
+    <div class="card shadow p-4">
+
+        <!-- Judul -->
+        <h2 class="text-center mb-3">Edit Laporan</h2>
+
+        <!-- Sub Judul -->
+        <p class="text-center text-muted mb-4">
+            Ubah data laporan yang sudah ada
+        </p>
+
+        <!-- Form -->
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label class="form-label">Judul Laporan</label>
+                {{ form.title }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Kategori</label>
+                {{ form.category }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Deskripsi</label>
+                {{ form.description }}
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Lokasi</label>
+                {{ form.location }}
+            </div>
+
+            <!-- Tombol -->
+            <div class="d-flex justify-content-between mt-4">
+
+                <a href="{% url 'home' %}" class="btn btn-secondary">
+                    Kembali
+                </a>
+
+                <button type="submit" class="btn btn-warning">
+                    Update Laporan
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+</body>
+</html>
