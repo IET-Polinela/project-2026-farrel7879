@@ -30,12 +30,16 @@
                     <p class="card-text">
                         <strong>Kategori:</strong> {{ report.category }} <br>
                         <strong>Lokasi:</strong> {{ report.location }} <br>
-                        <strong>Deskripsi:</strong> {{ report.description }}
+                        <strong>Deskripsi:</strong> {{ report.description }} <br>
+                        <strong>Status:</strong> 
+                        <span class="badge bg-secondary">
+                            {{ report.status }}
+                        </span>
                     </p>
 
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-between mb-2">
 
-                        <a href="{% url 'update_report' report.id %}" 
+                        <a href="{% url 'edit_report' report.id %}" 
                            class="btn btn-warning btn-sm">
                            Edit
                         </a>
@@ -46,6 +50,36 @@
                         </a>
 
                     </div>
+
+                    <!-- WORKFLOW BUTTON -->
+                    <form method="POST" action="{% url 'update_status' report.id %}">
+                        {% csrf_token %}
+
+                        {% if report.status == 'REPORTED' %}
+                            <input type="hidden" name="status" value="VERIFIED">
+                            <button class="btn btn-info btn-sm w-100">
+                                Verifikasi
+                            </button>
+
+                        {% elif report.status == 'VERIFIED' %}
+                            <input type="hidden" name="status" value="IN_PROGRESS">
+                            <button class="btn btn-primary btn-sm w-100">
+                                Proses
+                            </button>
+
+                        {% elif report.status == 'IN_PROGRESS' %}
+                            <input type="hidden" name="status" value="RESOLVED">
+                            <button class="btn btn-success btn-sm w-100">
+                                Selesai
+                            </button>
+
+                        {% elif report.status == 'RESOLVED' %}
+                            <button class="btn btn-secondary btn-sm w-100" disabled>
+                                Selesai ✔
+                            </button>
+                        {% endif %}
+
+                    </form>
 
                 </div>
             </div>
