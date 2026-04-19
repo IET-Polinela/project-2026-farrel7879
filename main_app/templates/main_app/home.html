@@ -1,93 +1,155 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Daftar Laporan</title>
+{% extends 'base.html' %}
 
-    <!-- Bootstrap CDN -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
+{% block breadcrumb %}
+<nav>
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item active">Home</li>
+  </ol>
+</nav>
+{% endblock %}
 
-<div class="container mt-5">
+{% block content %}
 
-    <h1 class="text-center mb-4">Daftar Laporan Smart City</h1>
+<style>
+.hero {
+    background: linear-gradient(135deg, #0a2540, #0ea5e9);
+    color: white;
+    padding: 90px 20px;
+    border-radius: 30px;
+}
 
-    <div class="text-end mb-3">
-        <a href="{% url 'add_report' %}" class="btn btn-primary">
-            + Tambah Laporan
+.card-stats {
+    border-radius: 16px;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    transition: 0.25s;
+    min-height: 100px; /* 🔥 biar rata */
+}
+.card-stats:hover {
+    transform: translateY(-6px);
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: bold;
+}
+</style>
+
+<!-- HERO -->
+<div class="hero text-center mb-5">
+    <h1 class="fw-bold">Smart City Dashboard</h1>
+    <p class="opacity-75">
+        Pantau laporan kota secara real-time
+    </p>
+
+    <div class="mt-4">
+        <a href="{% url 'add_report' %}" class="btn btn-light px-4 me-2">
+            🚀 Buat Laporan
+        </a>
+
+        <a href="{% url 'report_list' %}" class="btn btn-outline-light px-4">
+            📋 Lihat Semua Laporan
         </a>
     </div>
+</div>
 
-    <div class="row">
-        {% for report in reports %}
-        <div class="col-md-6">
-            <div class="card mb-4 shadow-sm">
-                <div class="card-body">
+<!-- STATS -->
+<div class="row text-center g-4 mb-5">
 
-                    <h5 class="card-title">{{ report.title }}</h5>
+<div class="col-md">
+<div class="card-stats">
+<div>📊 Total</div>
+<div class="stat-number">{{ total_reports }}</div>
+</div>
+</div>
 
-                    <p class="card-text">
-                        <strong>Kategori:</strong> {{ report.category }} <br>
-                        <strong>Lokasi:</strong> {{ report.location }} <br>
-                        <strong>Deskripsi:</strong> {{ report.description }} <br>
-                        <strong>Status:</strong> 
-                        <span class="badge bg-secondary">
-                            {{ report.status }}
-                        </span>
-                    </p>
+<div class="col-md">
+<div class="card-stats">
+<div>📩 Reported</div>
+<div class="stat-number text-secondary">{{ reported_count }}</div>
+</div>
+</div>
 
-                    <div class="d-flex justify-content-between mb-2">
+<div class="col-md">
+<div class="card-stats">
+<div>✔ Verified</div>
+<div class="stat-number text-info">{{ verified_count }}</div>
+</div>
+</div>
 
-                        <a href="{% url 'edit_report' report.id %}" 
-                           class="btn btn-warning btn-sm">
-                           Edit
-                        </a>
+<div class="col-md">
+<div class="card-stats">
+<div>⚙️ In Progress</div>
+<div class="stat-number text-warning">{{ progress_count }}</div>
+</div>
+</div>
 
-                        <a href="{% url 'delete_report' report.id %}" 
-                           class="btn btn-danger btn-sm">
-                           Hapus
-                        </a>
-
-                    </div>
-
-                    <!-- WORKFLOW BUTTON -->
-                    <form method="POST" action="{% url 'update_status' report.id %}">
-                        {% csrf_token %}
-
-                        {% if report.status == 'REPORTED' %}
-                            <input type="hidden" name="status" value="VERIFIED">
-                            <button class="btn btn-info btn-sm w-100">
-                                Verifikasi
-                            </button>
-
-                        {% elif report.status == 'VERIFIED' %}
-                            <input type="hidden" name="status" value="IN_PROGRESS">
-                            <button class="btn btn-primary btn-sm w-100">
-                                Proses
-                            </button>
-
-                        {% elif report.status == 'IN_PROGRESS' %}
-                            <input type="hidden" name="status" value="RESOLVED">
-                            <button class="btn btn-success btn-sm w-100">
-                                Selesai
-                            </button>
-
-                        {% elif report.status == 'RESOLVED' %}
-                            <button class="btn btn-secondary btn-sm w-100" disabled>
-                                Selesai ✔
-                            </button>
-                        {% endif %}
-
-                    </form>
-
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+<div class="col-md">
+<div class="card-stats">
+<div>✅ Resolved</div>
+<div class="stat-number text-success">{{ resolved_count }}</div>
+</div>
+</div>
 
 </div>
 
-</body>
-</html>
+<!-- CHART + INFO -->
+<div class="row g-4">
+
+<div class="col-md-7">
+<div class="card card-smooth p-4">
+<h5>📊 Statistik Laporan</h5>
+<canvas id="chart"></canvas>
+</div>
+</div>
+
+<div class="col-md-5">
+<div class="card card-smooth p-4 h-100">
+
+<h5>🚀 Quick Actions</h5>
+
+<a href="{% url 'add_report' %}" class="btn btn-ocean w-100 mt-3">
++ Tambah Laporan Baru
+</a>
+
+<a href="{% url 'report_list' %}" class="btn btn-outline-primary w-100 mt-2">
+Lihat Semua Laporan
+</a>
+
+<hr>
+
+<p class="text-muted small">
+Gunakan dashboard ini untuk memantau dan mengelola laporan kota dengan cepat dan efisien.
+</p>
+
+</div>
+</div>
+
+</div>
+
+<!-- CHART SCRIPT -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('chart');
+
+if (ctx) {
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Reported','Verified','In Progress','Resolved'],
+            datasets: [{
+                data: [
+                    {{ reported_count }},
+                    {{ verified_count }},
+                    {{ progress_count }},
+                    {{ resolved_count }}
+                ],
+                backgroundColor: ['#6c757d','#0ea5e9','#ffc107','#198754']
+            }]
+        }
+    });
+}
+</script>
+
+{% endblock %}

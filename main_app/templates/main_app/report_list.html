@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<nav>
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="{% url 'home' %}">Home</a>
+    </li>
+    <li class="breadcrumb-item active">Reports</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<style>
+.table-card {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.05);
+}
+
+.table tbody tr:hover {
+    background: #f1f5f9;
+    transform: translateY(-2px);
+    transition: 0.2s;
+}
+
+.badge {
+    padding: 6px 12px;
+    border-radius: 12px;
+}
+
+.btn-action {
+    border-radius: 10px;
+    font-size: 13px;
+}
+</style>
+
+<h3 class="fw-bold mb-4">📋 Daftar Laporan</h3>
+
+<!-- SEARCH -->
+<form method="GET" class="row g-3 mb-4">
+
+<div class="col-md-4">
+<input type="text" name="q" value="{{ request.GET.q }}" class="form-control" placeholder="🔍 Cari laporan...">
+</div>
+
+<div class="col-md-3">
+<select name="status" class="form-select">
+<option value="">Semua Status</option>
+
+<option value="REPORTED" {% if request.GET.status == 'REPORTED' %}selected{% endif %}>Reported</option>
+<option value="VERIFIED" {% if request.GET.status == 'VERIFIED' %}selected{% endif %}>Verified</option>
+<option value="IN_PROGRESS" {% if request.GET.status == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+<option value="RESOLVED" {% if request.GET.status == 'RESOLVED' %}selected{% endif %}>Resolved</option>
+
+</select>
+</div>
+
+<div class="col-md-2">
+<button type="submit" class="btn btn-ocean w-100">Filter</button>
+</div>
+
+</form>
+
+<!-- TABLE -->
+<div class="table-card">
+<div class="table-responsive">
+
+<table class="table align-middle">
+
+<thead class="table-dark">
+<tr>
+<th>📄 Judul</th>
+<th>📍 Lokasi</th>
+<th>📊 Status</th>
+<th>⚙️ Aksi</th>
+</tr>
+</thead>
+
+<tbody>
+
+{% for report in reports %}
+<tr>
+
+<td class="fw-semibold">{{ report.title }}</td>
+<td>{{ report.location }}</td>
+
+<td>
+<span class="badge
+{% if report.status == 'REPORTED' %} bg-secondary
+{% elif report.status == 'VERIFIED' %} bg-info
+{% elif report.status == 'IN_PROGRESS' %} bg-warning text-dark
+{% elif report.status == 'RESOLVED' %} bg-success
+{% endif %}
+">
+{{ report.get_status_display }}
+</span>
+</td>
+
+<td>
+<div class="d-flex gap-1">
+
+<!-- STATUS BUTTON -->
+{% if report.status != 'RESOLVED' %}
+<button 
+type="button"
+class="btn btn-ocean btn-sm btn-action"
+data-bs-toggle="modal"
+data-bs-target="#statusModal"
+data-id="{{ report.id }}"
+{% if report.status == 'REPORTED' %}
+data-status="VERIFIED"
+data-text="Verifikasi laporan ini?"
+{% elif report.status == 'VERIFIED' %}
+data-status="IN_PROGRESS"
+data-text="Proses laporan ini?"
+{% elif report.status == 'IN_PROGRESS' %}
+data-status="RESOLVED"
+data-text="Selesaikan laporan ini?"
+{% endif %}
+>
+✔
+</button>
+{% endif %}
+
+<!-- EDIT -->
+<a href="{% url 'update_report' report.id %}" 
+class="btn btn-outline-warning btn-sm btn-action">
+✏
+</a>
+
+<!-- DELETE -->
+<button 
+class="btn btn-outline-danger btn-sm btn-action"
+data-bs-toggle="modal"
+data-bs-target="#deleteModal"
+data-id="{{ report.id }}"
+data-title="{{ report.title }}">
+🗑
+</button>
+
+</div>
+</td>
+
+</tr>
+{% endfor %}
+
+{% if not reports %}
+<tr>
+<td colspan="4" class="text-center py-5">
+<h6 class="text-muted">Belum ada laporan 😶</h6>
+<a href="{% url 'add_report' %}" class="btn btn-ocean mt-2">
++ Tambah Laporan
+</a>
+</td>
+</tr>
+{% endif %}
+
+</tbody>
+</table>
+
+</div>
+</div>
+
+<!-- STATUS MODAL -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-primary">Konfirmasi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body text-center">
+        <p id="statusText"></p>
+      </div>
+
+      <div class="modal-footer border-0 justify-content-center">
+
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            Batal
+        </button>
+
+        <form method="POST" id="statusForm">
+            {% csrf_token %}
+            <input type="hidden" name="status" id="statusInput">
+            <button type="submit" class="btn btn-ocean">Lanjutkan</button>
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4">
+
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-danger">⚠️ Konfirmasi Hapus</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body text-center">
+        <p>Yakin mau hapus:</p>
+        <strong id="modalTitle"></strong>
+      </div>
+
+      <div class="modal-footer border-0 justify-content-center">
+
+        <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            Batal
+        </button>
+
+        <form method="POST" id="deleteForm">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Hapus</button>
+        </form>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPT -->
+<script>
+const deleteModal = document.getElementById('deleteModal');
+const statusModal = document.getElementById('statusModal');
+
+if (deleteModal) {
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+        document.getElementById('modalTitle').innerText = button.getAttribute('data-title');
+        document.getElementById('deleteForm').action = `/reports/${button.getAttribute('data-id')}/delete/`;
+    });
+}
+
+if (statusModal) {
+    statusModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+
+        document.getElementById('statusText').innerText = button.getAttribute('data-text');
+        document.getElementById('statusInput').value = button.getAttribute('data-status');
+        document.getElementById('statusForm').action = `/reports/${button.getAttribute('data-id')}/status/`;
+    });
+}
+</script>
+
+{% endblock %}
