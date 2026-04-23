@@ -104,44 +104,54 @@
 <td>
 <div class="d-flex gap-1">
 
-<!-- STATUS BUTTON -->
-{% if report.status != 'RESOLVED' %}
-<button 
-type="button"
-class="btn btn-ocean btn-sm btn-action"
-data-bs-toggle="modal"
-data-bs-target="#statusModal"
-data-id="{{ report.id }}"
-{% if report.status == 'REPORTED' %}
-data-status="VERIFIED"
-data-text="Verifikasi laporan ini?"
-{% elif report.status == 'VERIFIED' %}
-data-status="IN_PROGRESS"
-data-text="Proses laporan ini?"
-{% elif report.status == 'IN_PROGRESS' %}
-data-status="RESOLVED"
-data-text="Selesaikan laporan ini?"
-{% endif %}
->
-✔
-</button>
-{% endif %}
-
-<!-- EDIT -->
-<a href="{% url 'update_report' report.id %}" 
-class="btn btn-outline-warning btn-sm btn-action">
-✏
+<!-- 👁 DETAIL (SEMUA USER BOLEH) -->
+<a href="{% url 'report_detail' report.id %}" 
+class="btn btn-outline-primary btn-sm btn-action">
+👁
 </a>
 
-<!-- DELETE -->
-<button 
-class="btn btn-outline-danger btn-sm btn-action"
-data-bs-toggle="modal"
-data-bs-target="#deleteModal"
-data-id="{{ report.id }}"
-data-title="{{ report.title }}">
-🗑
-</button>
+{% if user.is_admin %}
+
+    <!-- ✔ STATUS -->
+    {% if report.status != 'RESOLVED' %}
+    <button 
+    type="button"
+    class="btn btn-ocean btn-sm btn-action"
+    data-bs-toggle="modal"
+    data-bs-target="#statusModal"
+    data-id="{{ report.id }}"
+    {% if report.status == 'REPORTED' %}
+        data-status="VERIFIED"
+        data-text="Verifikasi laporan ini?"
+    {% elif report.status == 'VERIFIED' %}
+        data-status="IN_PROGRESS"
+        data-text="Proses laporan ini?"
+    {% elif report.status == 'IN_PROGRESS' %}
+        data-status="RESOLVED"
+        data-text="Selesaikan laporan ini?"
+    {% endif %}
+    >
+    ✔
+    </button>
+    {% endif %}
+
+    <!-- ✏ EDIT -->
+    <a href="{% url 'update_report' report.id %}" 
+    class="btn btn-outline-warning btn-sm btn-action">
+    ✏
+    </a>
+
+    <!-- 🗑 DELETE -->
+    <button 
+    class="btn btn-outline-danger btn-sm btn-action"
+    data-bs-toggle="modal"
+    data-bs-target="#deleteModal"
+    data-id="{{ report.id }}"
+    data-title="{{ report.title }}">
+    🗑
+    </button>
+
+{% endif %}
 
 </div>
 </td>
@@ -153,9 +163,13 @@ data-title="{{ report.title }}">
 <tr>
 <td colspan="4" class="text-center py-5">
 <h6 class="text-muted">Belum ada laporan 😶</h6>
+
+{% if user.is_admin %}
 <a href="{% url 'add_report' %}" class="btn btn-ocean mt-2">
 + Tambah Laporan
 </a>
+{% endif %}
+
 </td>
 </tr>
 {% endif %}
@@ -166,7 +180,9 @@ data-title="{{ report.title }}">
 </div>
 </div>
 
+<!-- ========================= -->
 <!-- STATUS MODAL -->
+<!-- ========================= -->
 <div class="modal fade" id="statusModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4">
@@ -198,7 +214,9 @@ data-title="{{ report.title }}">
   </div>
 </div>
 
+<!-- ========================= -->
 <!-- DELETE MODAL -->
+<!-- ========================= -->
 <div class="modal fade" id="deleteModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content rounded-4">
@@ -230,7 +248,9 @@ data-title="{{ report.title }}">
   </div>
 </div>
 
+<!-- ========================= -->
 <!-- SCRIPT -->
+<!-- ========================= -->
 <script>
 const deleteModal = document.getElementById('deleteModal');
 const statusModal = document.getElementById('statusModal');

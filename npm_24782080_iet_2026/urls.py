@@ -23,5 +23,8 @@ urlpatterns = [
     path('', include('main_app.urls')),
     path('about/', include('about.urls')),
     path('contacts/', include('contacts.urls')),
+    path('', include('usermanagement_24782080.urls')),  # 🔥 INI PENTING
+    
+
 ]
 

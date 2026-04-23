@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+
+<style>
+.form-wrapper {
+    max-width: 450px;
+    margin: auto;
+}
+
+.form-card {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 35px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+}
+
+.form-control {
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.btn-submit {
+    border-radius: 12px;
+    padding: 10px;
+}
+</style>
+
+<div class="form-wrapper mt-5">
+
+<div class="form-card">
+
+<h4 class="fw-bold text-center mb-4">📝 Register</h4>
+
+<form method="POST">
+{% csrf_token %}
+
+<!-- 🔴 ERROR GLOBAL -->
+{% if form.errors %}
+<div class="alert alert-danger">
+    Mohon periksa kembali input Anda.
+</div>
+{% endif %}
+
+<!-- USERNAME -->
+<div class="mb-3">
+<label class="form-label">Username</label>
+<input 
+    type="text" 
+    name="username" 
+    class="form-control"
+    value="{{ form.username.value|default_if_none:'' }}"
+>
+{% if form.username.errors %}
+<div class="text-danger small">{{ form.username.errors }}</div>
+{% endif %}
+</div>
+
+<!-- PASSWORD -->
+<div class="mb-3">
+<label class="form-label">Password</label>
+<input 
+    type="password" 
+    name="password1" 
+    class="form-control"
+>
+{% if form.password1.errors %}
+<div class="text-danger small">{{ form.password1.errors }}</div>
+{% endif %}
+</div>
+
+<!-- CONFIRM PASSWORD -->
+<div class="mb-3">
+<label class="form-label">Confirm Password</label>
+<input 
+    type="password" 
+    name="password2" 
+    class="form-control"
+>
+{% if form.password2.errors %}
+<div class="text-danger small">{{ form.password2.errors }}</div>
+{% endif %}
+</div>
+
+<!-- BUTTON -->
+<button class="btn btn-ocean w-100 btn-submit">
+    Register
+</button>
+
+</form>
+
+<!-- LINK LOGIN -->
+<p class="text-center mt-3">
+    Sudah punya akun?
+    <a href="{% url 'login' %}">Login</a>
+</p>
+
+</div>
+
+</div>
+
+{% endblock %}

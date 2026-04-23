@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="card shadow p-4">
+
+        <h3 class="mb-3">📄 {{ object.title }}</h3>
+
+        <p><b>📍 Lokasi:</b> {{ object.location }}</p>
+
+        <p>
+            <b>📊 Status:</b>
+            <span class="badge bg-info">
+                {{ object.get_status_display }}
+            </span>
+        </p>
+
+        <hr>
+
+        <h5>📝 Deskripsi</h5>
+        <p>{{ object.description }}</p>
+
+        <a href="{% url 'report_list' %}" class="btn btn-secondary mt-3">
+            ← Kembali
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

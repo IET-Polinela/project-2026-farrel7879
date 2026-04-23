@@ -65,8 +65,12 @@
 <!-- 🔹 JUDUL -->
 <div class="mb-3">
 <label class="form-label">Judul</label>
-<input type="text" name="title" class="form-control"
-value="{{ form.title.value|default:'' }}">
+<input 
+    type="text" 
+    name="title" 
+    class="form-control"
+    value="{{ form.title.value|default_if_none:'' }}"
+>
 {% if form.title.errors %}
 <div class="text-danger small">{{ form.title.errors }}</div>
 {% endif %}
@@ -76,13 +80,20 @@ value="{{ form.title.value|default:'' }}">
 <div class="mb-3">
 <label class="form-label">Kategori</label>
 <select name="category" class="form-select">
-    {% for choice in form.category.field.choices %}
-        <option value="{{ choice.0 }}"
-        {% if form.category.value == choice.0 %}selected{% endif %}>
-            {{ choice.1 }}
+
+    {% for value, label in form.category.field.choices %}
+        <option 
+            value="{{ value }}"
+            {% if form.category.value|stringformat:"s" == value|stringformat:"s" %}
+                selected
+            {% endif %}
+        >
+            {{ label }}
         </option>
     {% endfor %}
+
 </select>
+
 {% if form.category.errors %}
 <div class="text-danger small">{{ form.category.errors }}</div>
 {% endif %}
@@ -91,7 +102,12 @@ value="{{ form.title.value|default:'' }}">
 <!-- 🔹 DESKRIPSI -->
 <div class="mb-3">
 <label class="form-label">Deskripsi</label>
-<textarea name="description" class="form-control" rows="4">{{ form.description.value|default:'' }}</textarea>
+<textarea 
+    name="description" 
+    class="form-control" 
+    rows="4"
+>{{ form.description.value|default_if_none:'' }}</textarea>
+
 {% if form.description.errors %}
 <div class="text-danger small">{{ form.description.errors }}</div>
 {% endif %}
@@ -100,8 +116,13 @@ value="{{ form.title.value|default:'' }}">
 <!-- 🔹 LOKASI -->
 <div class="mb-3">
 <label class="form-label">Lokasi</label>
-<input type="text" name="location" class="form-control"
-value="{{ form.location.value|default:'' }}">
+<input 
+    type="text" 
+    name="location" 
+    class="form-control"
+    value="{{ form.location.value|default_if_none:'' }}"
+>
+
 {% if form.location.errors %}
 <div class="text-danger small">{{ form.location.errors }}</div>
 {% endif %}

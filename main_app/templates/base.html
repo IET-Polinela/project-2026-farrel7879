@@ -97,20 +97,41 @@ body::before {
 <body>
 
 <!-- NAVBAR -->
+ 
 <nav class="navbar">
     <div class="container-fluid">
 
         <a class="text-white fw-bold" href="/">Smart City</a>
 
-        <!-- 🔥 FIX: tambah menu biar sesuai lab -->
         <div class="ms-auto d-flex gap-3 align-items-center">
 
-            <a href="/" class="text-white text-decoration-none">Home</a>
-            <a href="/reports/" class="text-white text-decoration-none">Reports</a>
+            <a href="/" class="text-white">Home</a>
+            <a href="/reports/" class="text-white">Reports</a>
 
-            <a href="{% url 'add_report' %}" class="btn btn-ocean btn-sm">
-                + Tambah
-            </a>
+            {% if user.is_authenticated %}
+
+<span class="text-white">
+👤 {{ user.username }}
+({% if user.is_admin %}admin{% else %}masyarakat{% endif %})
+</span>
+
+{% if user.is_admin %}
+<a href="/admin/" class="btn btn-warning btn-sm">Admin Panel</a>
+{% endif %}
+
+<form action="{% url 'logout' %}" method="POST" style="display:inline;">
+    {% csrf_token %}
+    <button class="btn btn-outline-light btn-sm">
+        Logout
+    </button>
+</form>
+
+{% else %}
+
+<a href="{% url 'login' %}" class="btn btn-outline-light btn-sm">Login</a>
+<a href="{% url 'register' %}" class="btn btn-ocean btn-sm">Register</a>
+
+{% endif %}
 
         </div>
     </div>
