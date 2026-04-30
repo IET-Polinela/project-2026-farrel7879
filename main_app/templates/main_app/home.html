@@ -1,196 +1,176 @@
 {% extends 'base.html' %}
 
-{% block breadcrumb %}
-<nav>
-  <ol class="breadcrumb">
-    <li class="breadcrumb-item active">Home</li>
-  </ol>
-</nav>
-{% endblock %}
-
 {% block content %}
 
 <style>
 .hero {
     background: linear-gradient(135deg, #0a2540, #0ea5e9);
     color: white;
-    padding: 90px 20px;
+    padding: 110px 30px;
     border-radius: 30px;
+    text-align: center;
 }
 
-.card-stats {
-    border-radius: 16px;
-    padding: 20px;
-    background: white;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    transition: 0.25s;
-    min-height: 100px;
+.hero h1 {
+    font-size: 44px;
+    font-weight: 700;
 }
-.card-stats:hover {
+
+.hero p {
+    opacity: 0.85;
+    margin-top: 12px;
+}
+
+.hero-btns a {
+    margin: 10px;
+    padding: 12px 28px;
+    border-radius: 12px;
+}
+
+.feature-box {
+    background: white;
+    padding: 25px;
+    border-radius: 20px;
+    text-align: center;
+    transition: 0.25s;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+.feature-box:hover {
     transform: translateY(-6px);
 }
 
+.icon {
+    font-size: 30px;
+    margin-bottom: 10px;
+}
+
+.stats-mini {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
 .stat-number {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
-}
-
-/* 🔥 CHART STYLE */
-.chart-wrapper {
-    max-width: 380px;
-    margin: auto;
-}
-
-#chart {
-    width: 100% !important;
-    height: 300px !important;
 }
 </style>
 
 <!-- HERO -->
-<div class="hero text-center mb-5">
-    <h1 class="fw-bold">Smart City Dashboard</h1>
-    <p class="opacity-75">
-        Pantau laporan kota secara real-time
-    </p>
+<div class="hero mb-5">
+    <h1>Smart City Platform 🚀</h1>
+    <p>Pantau, kelola, dan respon laporan kota secara cepat & real-time</p>
 
-    <div class="mt-4 d-flex justify-content-center gap-3">
-        {% if user.is_admin %}
-        <a href="{% url 'add_report' %}" class="btn btn-light px-4">
-            🚀 Buat Laporan
+    <div class="hero-btns mt-4">
+        <a href="/dashboard/" class="btn btn-light">
+            🚀 Masuk Dashboard
         </a>
-        {% endif %}
 
-        <a href="{% url 'report_list' %}" class="btn btn-outline-light px-4">
-            📋 Lihat Semua Laporan
+        <a href="/reports/" class="btn btn-outline-light">
+            📋 Lihat Laporan
         </a>
     </div>
 </div>
 
-<!-- STATS -->
+<!-- 🔥 MINI STATS (LIVE FEEL) -->
 <div class="row text-center g-4 mb-5">
 
-<div class="col-md">
-<div class="card-stats">
-<div>📊 Total</div>
-<div class="stat-number">{{ total_reports }}</div>
-</div>
-</div>
+    <div class="col-md">
+        <div class="stats-mini">
+            <div>Total</div>
+            <div id="totalReports" class="stat-number">...</div>
+        </div>
+    </div>
 
-<div class="col-md">
-<div class="card-stats">
-<div>📩 Reported</div>
-<div class="stat-number text-secondary">{{ reported_count }}</div>
-</div>
-</div>
+    <div class="col-md">
+        <div class="stats-mini">
+            <div>Reported</div>
+            <div id="reportedCount" class="stat-number text-secondary">...</div>
+        </div>
+    </div>
 
-<div class="col-md">
-<div class="card-stats">
-<div>✔ Verified</div>
-<div class="stat-number text-info">{{ verified_count }}</div>
-</div>
-</div>
-
-<div class="col-md">
-<div class="card-stats">
-<div>⚙️ In Progress</div>
-<div class="stat-number text-warning">{{ progress_count }}</div>
-</div>
-</div>
-
-<div class="col-md">
-<div class="card-stats">
-<div>✅ Resolved</div>
-<div class="stat-number text-success">{{ resolved_count }}</div>
-</div>
-</div>
+    <div class="col-md">
+        <div class="stats-mini">
+            <div>Resolved</div>
+            <div id="resolvedCount" class="stat-number text-success">...</div>
+        </div>
+    </div>
 
 </div>
 
-<!-- CHART + QUICK ACTION -->
-<div class="row g-4">
+<!-- FEATURES -->
+<div class="row g-4 text-center">
 
-<!-- CHART -->
-<div class="{% if user.is_admin %}col-md-7{% else %}col-md-12{% endif %}">
-<div class="card card-smooth p-4 text-center">
+    <div class="col-md-4">
+        <div class="feature-box">
+            <div class="icon">📊</div>
+            <h5>Dashboard Real-Time</h5>
+            <p class="small text-muted">
+                Pantau distribusi laporan kota secara langsung
+            </p>
+        </div>
+    </div>
 
-<h5 class="mb-3">📊 Statistik Laporan</h5>
+    <div class="col-md-4">
+        <div class="feature-box">
+            <div class="icon">📝</div>
+            <h5>Manajemen Laporan</h5>
+            <p class="small text-muted">
+                Tambah, edit, dan update status laporan dengan mudah
+            </p>
+        </div>
+    </div>
 
-<div class="chart-wrapper">
-    <canvas id="chart"></canvas>
-</div>
-
-<div class="mt-3 small text-muted">
-    Distribusi status laporan kota saat ini
-</div>
-
-</div>
-</div>
-
-<!-- QUICK ACTION (ADMIN ONLY) -->
-{% if user.is_admin %}
-<div class="col-md-5">
-<div class="card card-smooth p-4 h-100">
-
-<h5>🚀 Quick Actions</h5>
-
-<a href="{% url 'add_report' %}" class="btn btn-ocean w-100 mt-3">
-+ Tambah Laporan Baru
-</a>
-
-<a href="{% url 'report_list' %}" class="btn btn-outline-primary w-100 mt-2">
-Lihat Semua Laporan
-</a>
-
-<hr>
-
-<p class="text-muted small">
-Gunakan dashboard ini untuk memantau dan mengelola laporan kota dengan cepat dan efisien.
-</p>
-
-</div>
-</div>
-{% endif %}
+    <div class="col-md-4">
+        <div class="feature-box">
+            <div class="icon">⚡</div>
+            <h5>Interaktif & Cepat</h5>
+            <p class="small text-muted">
+                Live search dan detail tanpa reload halaman
+            </p>
+        </div>
+    </div>
 
 </div>
 
-<!-- CHART SCRIPT -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- CTA -->
+<div class="text-center mt-5">
+    <h5 class="mb-3">Siap mulai mengelola kota lebih baik?</h5>
+    <a href="/dashboard/" class="btn btn-ocean px-4">
+        Masuk Dashboard Sekarang
+    </a>
+</div>
+
+<!-- 🔥 JS MINI STATS -->
 <script>
-const ctx = document.getElementById('chart');
+document.addEventListener("DOMContentLoaded", function () {
 
-if (ctx) {
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Reported','Verified','In Progress','Resolved'],
-            datasets: [{
-                data: [
-                    {{ reported_count }},
-                    {{ verified_count }},
-                    {{ progress_count }},
-                    {{ resolved_count }}
-                ],
-                backgroundColor: [
-                    '#6c757d',
-                    '#0ea5e9',
-                    '#ffc107',
-                    '#198754'
-                ],
-                borderWidth: 0,
-                hoverOffset: 8
-            }]
-        },
-        options: {
-            cutout: '70%', // 🔥 donut modern
-            plugins: {
-                legend: {
-                    position: 'top'
-                }
-            }
-        }
+fetch('/dashboard/data/')
+.then(res => res.json())
+.then(data => {
+
+    const statusMap = {
+        REPORTED: 0,
+        VERIFIED: 0,
+        IN_PROGRESS: 0,
+        RESOLVED: 0
+    };
+
+    data.status.forEach(item => {
+        statusMap[item.status] = item.total;
     });
-}
+
+    document.getElementById('reportedCount').innerText = statusMap.REPORTED;
+    document.getElementById('resolvedCount').innerText = statusMap.RESOLVED;
+
+    const total = Object.values(statusMap).reduce((a,b)=>a+b,0);
+    document.getElementById('totalReports').innerText = total;
+
+});
+
+});
 </script>
 
 {% endblock %}

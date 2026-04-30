@@ -20,11 +20,17 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
 
+    # MAIN APP
     path('', include('main_app.urls')),
+
+    # DASHBOARD 🔥
+    path('dashboard/', include('dashboard.urls')),
+
+    # OTHER APPS
     path('about/', include('about.urls')),
     path('contacts/', include('contacts.urls')),
-    path('', include('usermanagement_24782080.urls')),  # 🔥 INI PENTING
-    
 
+    # AUTH / USER MANAGEMENT 🔥 JANGAN DI ROOT
+    path('auth/', include('usermanagement_24782080.urls')),
 ]
 

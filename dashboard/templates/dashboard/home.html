@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<nav>
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="/">Home</a>
+    </li>
+    <li class="breadcrumb-item active">
+        Dashboard
+    </li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<style>
+.hero {
+    background: linear-gradient(135deg, #0a2540, #0ea5e9);
+    color: white;
+    padding: 90px 20px;
+    border-radius: 30px;
+}
+
+.card-stats {
+    border-radius: 16px;
+    padding: 20px;
+    background: white;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.chart-wrapper {
+    max-width: 350px;
+    margin: auto;
+}
+</style>
+
+<div class="hero text-center mb-5">
+    <h1 class="fw-bold">Smart City Dashboard</h1>
+    <p class="opacity-75">Realtime Monitoring 🚀</p>
+</div>
+
+<!-- STATS -->
+<div class="row text-center g-4 mb-5">
+    <div class="col-md"><div class="card-stats">Total<div id="totalReports" class="stat-number">0</div></div></div>
+    <div class="col-md"><div class="card-stats">Reported<div id="reportedCount" class="stat-number text-secondary">0</div></div></div>
+    <div class="col-md"><div class="card-stats">Verified<div id="verifiedCount" class="stat-number text-info">0</div></div></div>
+    <div class="col-md"><div class="card-stats">Progress<div id="progressCount" class="stat-number text-warning">0</div></div></div>
+    <div class="col-md"><div class="card-stats">Resolved<div id="resolvedCount" class="stat-number text-success">0</div></div></div>
+</div>
+
+<!-- CHART -->
+<div class="row g-4 mb-5">
+
+<div class="col-md-6">
+<div class="card-smooth p-4 text-center">
+<h5>📊 Status</h5>
+
+<div class="chart-wrapper">
+<div id="statusLoading"><div class="spinner-border text-primary"></div></div>
+<canvas id="statusChart" style="display:none;"></canvas>
+</div>
+
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="card-smooth p-4 text-center">
+<h5>📂 Kategori</h5>
+
+<div id="categoryLoading"><div class="spinner-border text-primary"></div></div>
+<canvas id="categoryChart" style="display:none;"></canvas>
+
+</div>
+</div>
+
+</div>
+
+<!-- TABLE -->
+<div class="row">
+
+<div class="col-md-6">
+<div class="card-smooth p-4">
+<h5>📩 Terbaru</h5>
+<table class="table">
+<tbody id="reportedTable"></tbody>
+</table>
+</div>
+</div>
+
+<div class="col-md-6">
+<div class="card-smooth p-4">
+<h5>✅ Selesai</h5>
+<table class="table">
+<tbody id="resolvedTable"></tbody>
+</table>
+</div>
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+let statusChart = null;
+let categoryChart = null;
+
+function loadDashboardData() {
+
+    fetch('/dashboard/data/')
+    .then(res => res.json())
+    .then(data => {
+
+        const statusMap = {
+            REPORTED: 0,
+            VERIFIED: 0,
+            IN_PROGRESS: 0,
+            RESOLVED: 0
+        };
+
+        data.status.forEach(item => {
+            statusMap[item.status] = item.total;
+        });
+
+        // ===== UPDATE STATS =====
+        document.getElementById('reportedCount').innerText = statusMap.REPORTED;
+        document.getElementById('verifiedCount').innerText = statusMap.VERIFIED;
+        document.getElementById('progressCount').innerText = statusMap.IN_PROGRESS;
+        document.getElementById('resolvedCount').innerText = statusMap.RESOLVED;
+
+        document.getElementById('totalReports').innerText =
+            Object.values(statusMap).reduce((a,b)=>a+b,0);
+
+        // ===== SHOW CANVAS =====
+        document.getElementById("statusLoading").style.display = "none";
+        document.getElementById("categoryLoading").style.display = "none";
+        document.getElementById("statusChart").style.display = "block";
+        document.getElementById("categoryChart").style.display = "block";
+
+        // ===== STATUS CHART =====
+        if (statusChart) {
+            statusChart.data.datasets[0].data = [
+                statusMap.REPORTED,
+                statusMap.VERIFIED,
+                statusMap.IN_PROGRESS,
+                statusMap.RESOLVED
+            ];
+            statusChart.update();
+        } else {
+            statusChart = new Chart(document.getElementById('statusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Reported','Verified','Progress','Resolved'],
+                    datasets: [{
+                        data: [
+                            statusMap.REPORTED,
+                            statusMap.VERIFIED,
+                            statusMap.IN_PROGRESS,
+                            statusMap.RESOLVED
+                        ]
+                    }]
+                }
+            });
+        }
+
+        // ===== CATEGORY CHART =====
+        const labels = data.category.map(i => i.category);
+        const values = data.category.map(i => i.total);
+
+        if (categoryChart) {
+            categoryChart.data.labels = labels;
+            categoryChart.data.datasets[0].data = values;
+            categoryChart.update();
+        } else {
+            categoryChart = new Chart(document.getElementById('categoryChart'), {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values
+                    }]
+                }
+            });
+        }
+
+        // ===== TABLE =====
+        const reportedTable = document.getElementById('reportedTable');
+        reportedTable.innerHTML = "";
+        data.latest_reported.forEach(item => {
+            reportedTable.innerHTML += `<tr><td>${item.title}</td><td>${item.location}</td></tr>`;
+        });
+
+        const resolvedTable = document.getElementById('resolvedTable');
+        resolvedTable.innerHTML = "";
+        data.latest_resolved.forEach(item => {
+            resolvedTable.innerHTML += `<tr><td>${item.title}</td><td>${item.location}</td></tr>`;
+        });
+
+    });
+
+}
+
+// 🔥 LOAD PERTAMA
+loadDashboardData();
+
+// 🔥 AUTO REFRESH
+setInterval(loadDashboardData, 5000);
+
+});
+</script>
+
+{% endblock %}

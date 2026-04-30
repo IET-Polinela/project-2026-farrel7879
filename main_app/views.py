@@ -4,13 +4,15 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
+from django.db.models import Count
 
 from .models import Report
 from .forms import ReportForm
 
 
 # =========================
-# HOME (PUBLIC)
+# HOME (PUBLIC DASHBOARD)
 # =========================
 def home(request):
     reports = Report.objects.all()
@@ -34,6 +36,7 @@ class ReportListView(LoginRequiredMixin, ListView):
     template_name = 'main_app/report_list.html'
     context_object_name = 'reports'
     paginate_by = 5
+    ordering = ['-created_at']  # 🔥 FIX WARNING pagination
 
 
 # =========================
@@ -133,3 +136,60 @@ class ReportUpdateStatusView(LoginRequiredMixin, View):
                 messages.error(request, "Transisi status tidak valid")
 
         return redirect('report_list')
+
+
+# =========================
+# 🔥 DASHBOARD JSON API
+# =========================
+def dashboard_data(request):
+
+    status_data = list(
+        Report.objects
+        .values('status')
+        .annotate(total=Count('id'))
+    )
+
+    category_data = list(
+        Report.objects
+        .values('category')
+        .annotate(total=Count('id'))
+    )
+
+    latest_reported = list(
+        Report.objects
+        .filter(status='REPORTED')
+        .order_by('-created_at')[:5]
+        .values('id', 'title', 'location', 'created_at')
+    )
+
+    latest_resolved = list(
+        Report.objects
+        .filter(status='RESOLVED')
+        .order_by('-created_at')[:5]
+        .values('id', 'title', 'location', 'created_at')
+    )
+
+    return JsonResponse({
+        'status': status_data,
+        'category': category_data,
+        'latest_reported': latest_reported,
+        'latest_resolved': latest_resolved,
+    })
+
+
+# =========================
+# 🔥 DETAIL API (WAJIB UNTUK MODAL)
+# =========================
+def report_detail_api(request, pk):
+    report = get_object_or_404(Report, pk=pk)
+
+    data = {
+        'title': report.title,
+        'category': report.category,
+        'description': report.description,
+        'location': report.location,
+        'status': report.status,
+        'created_at': report.created_at.strftime("%d %B %Y %H:%M"),
+    }
+
+    return JsonResponse(data)
