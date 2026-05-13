@@ -7,14 +7,19 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
 from django.db.models import Count
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
 from .models import Report
 from .forms import ReportForm
+from .serializers import ReportSerializer
 
 
 # =========================
-# HOME (PUBLIC DASHBOARD)
+# HOME
 # =========================
 def home(request):
+
     reports = Report.objects.all()
 
     context = {
@@ -29,96 +34,128 @@ def home(request):
 
 
 # =========================
-# LIST (LOGIN REQUIRED)
+# REPORT LIST
 # =========================
 class ReportListView(LoginRequiredMixin, ListView):
+
     model = Report
     template_name = 'main_app/report_list.html'
     context_object_name = 'reports'
     paginate_by = 5
-    ordering = ['-created_at']  # 🔥 FIX WARNING pagination
+    ordering = ['-created_at']
+
+    def get_queryset(self):
+
+        queryset = super().get_queryset()
+
+        query = self.request.GET.get('q')
+
+        if query:
+            queryset = queryset.filter(title__icontains=query)
+
+        return queryset
 
 
 # =========================
-# CREATE (ADMIN ONLY)
+# CREATE REPORT
 # =========================
 class ReportCreateView(LoginRequiredMixin, CreateView):
+
     model = Report
     form_class = ReportForm
     template_name = 'main_app/add_report.html'
     success_url = reverse_lazy('report_list')
 
     def dispatch(self, request, *args, **kwargs):
+
         if not request.user.is_admin:
             messages.error(request, "Hanya admin yang bisa menambah laporan")
             return redirect('report_list')
+
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
+
         messages.success(self.request, "Laporan berhasil ditambahkan")
+
         return super().form_valid(form)
 
 
 # =========================
-# DETAIL
+# DETAIL REPORT
 # =========================
 class ReportDetailView(LoginRequiredMixin, DetailView):
+
     model = Report
     template_name = 'main_app/report_detail.html'
 
 
 # =========================
-# UPDATE (ADMIN ONLY)
+# UPDATE REPORT
 # =========================
 class ReportUpdateView(LoginRequiredMixin, UpdateView):
+
     model = Report
     form_class = ReportForm
     template_name = 'main_app/update_report.html'
     success_url = reverse_lazy('report_list')
 
     def dispatch(self, request, *args, **kwargs):
+
         if not request.user.is_admin:
             messages.error(request, "Hanya admin yang bisa update")
             return redirect('report_list')
+
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
+
         messages.success(self.request, "Laporan berhasil diupdate")
+
         return super().form_valid(form)
 
 
 # =========================
-# DELETE (ADMIN ONLY)
+# DELETE REPORT
 # =========================
 class ReportDeleteView(LoginRequiredMixin, DeleteView):
+
     model = Report
     template_name = 'main_app/report_confirm_delete.html'
     success_url = reverse_lazy('report_list')
 
     def dispatch(self, request, *args, **kwargs):
+
         if not request.user.is_admin:
             messages.error(request, "Hanya admin yang bisa menghapus")
             return redirect('report_list')
+
         return super().dispatch(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
+
         messages.success(request, "Laporan berhasil dihapus")
+
         return super().delete(request, *args, **kwargs)
 
 
 # =========================
-# UPDATE STATUS (ADMIN ONLY)
+# UPDATE STATUS
 # =========================
 class ReportUpdateStatusView(LoginRequiredMixin, View):
 
     def dispatch(self, request, *args, **kwargs):
+
         if not request.user.is_admin:
             messages.error(request, "Hanya admin yang bisa update status")
             return redirect('report_list')
+
         return super().dispatch(request, *args, **kwargs)
 
     def post(self, request, pk):
+
         report = get_object_or_404(Report, pk=pk)
+
         new_status = request.POST.get('status')
 
         allowed_transitions = {
@@ -128,10 +165,14 @@ class ReportUpdateStatusView(LoginRequiredMixin, View):
         }
 
         if report.status in allowed_transitions:
+
             if allowed_transitions[report.status] == new_status:
+
                 report.status = new_status
                 report.save()
+
                 messages.success(request, "Status berhasil diperbarui")
+
             else:
                 messages.error(request, "Transisi status tidak valid")
 
@@ -139,7 +180,7 @@ class ReportUpdateStatusView(LoginRequiredMixin, View):
 
 
 # =========================
-# 🔥 DASHBOARD JSON API
+# DASHBOARD JSON API
 # =========================
 def dashboard_data(request):
 
@@ -178,9 +219,10 @@ def dashboard_data(request):
 
 
 # =========================
-# 🔥 DETAIL API (WAJIB UNTUK MODAL)
+# DETAIL API
 # =========================
 def report_detail_api(request, pk):
+
     report = get_object_or_404(Report, pk=pk)
 
     data = {
@@ -193,3 +235,16 @@ def report_detail_api(request, pk):
     }
 
     return JsonResponse(data)
+
+
+# =========================
+# DRF API REPORTS
+# =========================
+@api_view(['GET'])
+def api_reports(request):
+
+    reports = Report.objects.all().order_by('-created_at')
+
+    serializer = ReportSerializer(reports, many=True)
+
+    return Response(serializer.data)

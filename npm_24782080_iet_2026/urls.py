@@ -17,20 +17,25 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
+
 urlpatterns = [
+
     path('admin/', admin.site.urls),
 
     # MAIN APP
     path('', include('main_app.urls')),
 
-    # DASHBOARD 🔥
+    # DASHBOARD
     path('dashboard/', include('dashboard.urls')),
+
+    # DRF API
+    path('api/', include('main_app.api_urls')),
 
     # OTHER APPS
     path('about/', include('about.urls')),
     path('contacts/', include('contacts.urls')),
 
-    # AUTH / USER MANAGEMENT 🔥 JANGAN DI ROOT
+    # AUTH
     path('auth/', include('usermanagement_24782080.urls')),
 ]
 
