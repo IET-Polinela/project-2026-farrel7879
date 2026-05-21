@@ -43,8 +43,11 @@ INSTALLED_APPS = [
     'contacts',
     'dashboard',
 
-    'usermanagement_24782080',  # ✅ TAMBAHIN NPM
+    'usermanagement_24782080', 
+
+    # DRF
     'rest_framework',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -124,8 +127,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-LOGIN_URL = '/login/'
-
 AUTH_USER_MODEL = 'usermanagement_24782080.User'
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
@@ -133,3 +134,9 @@ LOGOUT_REDIRECT_URL = '/login/'
 LOGIN_URL = '/auth/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
