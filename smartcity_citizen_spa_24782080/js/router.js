@@ -51,7 +51,7 @@ const routes = {
         <div class="row g-4">
 
             <aside class="col-12 col-lg-3">
-                <div class="card shadow-sm border-0 h-100">
+                <div class="card shadow-sm border-0 mb-3">
                     <div class="card-body">
                         <h5>
                             <i class="bi bi-person-circle text-primary"></i>
@@ -59,34 +59,96 @@ const routes = {
                         </h5>
                         <hr>
 
-                        <button class="btn btn-outline-primary w-100 mb-2">
+                        <button 
+                            class="btn btn-outline-primary w-100 mb-2"
+                            onclick="openCreateModal()"
+                        >
                             <i class="bi bi-plus-circle"></i>
                             Laporan Baru
                         </button>
 
-                        <button class="btn btn-outline-secondary w-100" onclick="logout()">
+                        <button 
+                            class="btn btn-outline-secondary w-100"
+                            onclick="logout()"
+                        >
                             <i class="bi bi-box-arrow-right"></i>
                             Logout
                         </button>
                     </div>
                 </div>
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+                        <h5>
+                            <i class="bi bi-bar-chart-fill text-success"></i>
+                            Rekap Status
+                        </h5>
+                        <hr>
+
+                        <p class="mb-2">
+                            <span class="badge bg-secondary">Draft</span>
+                            <span id="draftCount" class="float-end fw-bold">0</span>
+                        </p>
+
+                        <p class="mb-2">
+                            <span class="badge bg-primary">Diproses</span>
+                            <span id="processCount" class="float-end fw-bold">0</span>
+                        </p>
+
+                        <p class="mb-0">
+                            <span class="badge bg-success">Selesai</span>
+                            <span id="doneCount" class="float-end fw-bold">0</span>
+                        </p>
+                    </div>
+                </div>
             </aside>
 
             <section class="col-12 col-lg-6">
-                <div class="card shadow-sm border-0">
+                <div class="card shadow-sm border-0 mb-3">
                     <div class="card-body">
                         <h4>
                             <i class="bi bi-speedometer2 text-success"></i>
                             Dashboard Citizen
                         </h4>
-                        <p class="text-muted">
-                            Selamat datang di Citizen Portal Smart City.
+                        <p class="text-muted mb-0">
+                            Pantau laporan pribadi dan linimasa laporan kota secara real-time.
                         </p>
+                    </div>
+                </div>
 
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle-fill"></i>
-                            Token JWT berhasil disimpan dan digunakan untuk autentikasi.
+                <div class="card shadow-sm border-0">
+                    <div class="card-body">
+
+                        <ul class="nav nav-pills mb-3">
+                            <li class="nav-item">
+                                <button 
+                                    class="nav-link active" 
+                                    id="myReportsTab"
+                                    onclick="switchTab('my_reports')"
+                                >
+                                    <i class="bi bi-journal-text"></i>
+                                    Laporan Saya
+                                </button>
+                            </li>
+
+                            <li class="nav-item">
+                                <button 
+                                    class="nav-link"
+                                    id="feedTab"
+                                    onclick="switchTab('feed')"
+                                >
+                                    <i class="bi bi-broadcast"></i>
+                                    Feed Kota
+                                </button>
+                            </li>
+                        </ul>
+
+                        <div id="reportListContainer">
+                            <p class="text-muted">Memuat data laporan...</p>
                         </div>
+
+                        <div id="paginationContainer" class="mt-3"></div>
+
                     </div>
                 </div>
             </section>
@@ -95,12 +157,12 @@ const routes = {
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body">
                         <h5>
-                            <i class="bi bi-bell-fill text-warning"></i>
+                            <i class="bi bi-info-circle-fill text-info"></i>
                             Informasi
                         </h5>
                         <hr>
                         <p class="text-muted">
-                            Laporan dengan status DRAFT hanya dapat dilihat oleh pembuat laporan.
+                            Draft hanya terlihat oleh pembuat laporan. Feed Kota hanya menampilkan laporan publik yang sudah diajukan.
                         </p>
                     </div>
                 </div>
@@ -120,6 +182,11 @@ function handleRouting() {
 
     if (currentPage === "login") {
         setupLoginForm();
+    }
+
+    if (currentPage === "dashboard") {
+        updateNavigation();
+        loadDashboardData("my_reports", 1);
     }
 }
 

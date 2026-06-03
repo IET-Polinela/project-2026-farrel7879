@@ -16,12 +16,19 @@ async function requestAPI(endpoint, method = "GET", bodyData = null) {
         headers: headers,
     };
 
-    if (bodyData) {
+    if (bodyData !== null) {
         options.body = JSON.stringify(bodyData);
     }
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-    const data = await response.json();
+
+    let data = null;
+
+    try {
+        data = await response.json();
+    } catch (error) {
+        data = {};
+    }
 
     return {
         status: response.status,

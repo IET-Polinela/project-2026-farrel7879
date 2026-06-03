@@ -1,26 +1,44 @@
+from django.db.models import Q
+
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 
 from .models import Report
 from .serializers import ReportSerializer
 from .permissions import IsOwnerAndDraftOrReadOnly
 
 
+# =========================
+# PAGINATION LAB 12
+# =========================
+class ReportPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+
+
+# =========================
+# CITIZEN PERMISSION
+# =========================
 class IsCitizen(permissions.BasePermission):
 
     def has_permission(self, request, view):
-
         return (
             request.user.is_authenticated
             and not request.user.is_admin
         )
 
 
+# =========================
+# REPORT VIEWSET
+# =========================
 class ReportViewSet(viewsets.ModelViewSet):
 
     serializer_class = ReportSerializer
+    pagination_class = ReportPagination
 
     def get_queryset(self):
 
@@ -29,12 +47,33 @@ class ReportViewSet(viewsets.ModelViewSet):
         if not user.is_authenticated:
             return Report.objects.none()
 
-        if user.is_admin:
-            return Report.objects.exclude(status='DRAFT').order_by('-created_at')
+        queryset = Report.objects.all().order_by('-updated_at')
 
-        return Report.objects.filter(
-            reporter=user
-        ) | Report.objects.exclude(status='DRAFT')
+        tab = self.request.query_params.get('tab')
+
+        # TAB: LAPORAN SAYA
+        # Menampilkan semua laporan milik user login, termasuk DRAFT
+        if tab == 'my_reports':
+            return queryset.filter(reporter=user)
+
+        # TAB: FEED KOTA
+        # Menampilkan laporan warga lain yang bukan DRAFT
+        if tab == 'feed':
+            return queryset.filter(
+                ~Q(reporter=user),
+                ~Q(status='DRAFT')
+            )
+
+        # DEFAULT
+        # Citizen melihat laporan sendiri + laporan public non-DRAFT
+        if not user.is_admin:
+            return queryset.filter(
+                Q(reporter=user) |
+                ~Q(status='DRAFT')
+            )
+
+        # Admin hanya melihat laporan yang sudah diajukan / bukan DRAFT
+        return queryset.exclude(status='DRAFT')
 
     def get_permissions(self):
 
@@ -67,6 +106,7 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
 
+        # Laporan baru otomatis menjadi DRAFT
         serializer.save(
             reporter=self.request.user,
             status='DRAFT'
@@ -79,6 +119,7 @@ class ReportViewSet(viewsets.ModelViewSet):
         new_status = request.data.get('status')
 
         allowed_status = [
+            'REPORTED',
             'VERIFIED',
             'IN_PROGRESS',
             'RESOLVED'
