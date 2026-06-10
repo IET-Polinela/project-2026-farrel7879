@@ -29,6 +29,10 @@ ALLOWED_HOSTS = ['*']
 
 CORS_ALLOW_ALL_ORIGINS = True
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://103.151.63.87:8011",
+]
+
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
