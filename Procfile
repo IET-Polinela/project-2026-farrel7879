@@ -1,0 +1,1 @@
+web: gunicorn smartcity_app.wsgi
