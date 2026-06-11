@@ -73,3 +73,46 @@ class CustomLogoutView(LogoutView):
     def dispatch(self, request, *args, **kwargs):
         messages.success(request, "Logout berhasil")
         return super().dispatch(request, *args, **kwargs)
+    
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def register_api(request):
+    User = get_user_model()
+
+    username = request.data.get("username")
+    email = request.data.get("email", "")
+    password = request.data.get("password")
+    password2 = request.data.get("password2")
+
+    if not username or not password or not password2:
+        return Response(
+            {"detail": "Username dan password wajib diisi."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if password != password2:
+        return Response(
+            {"detail": "Konfirmasi password tidak sama."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    if User.objects.filter(username=username).exists():
+        return Response(
+            {"detail": "Username sudah digunakan."},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    user = User.objects.create_user(
+        username=username,
+        email=email,
+        password=password
+    )
+
+    user.is_admin = False
+    user.is_member = True
+    user.save()
+
+    return Response(
+        {"detail": "Akun berhasil dibuat."},
+        status=status.HTTP_201_CREATED
+    )

@@ -39,6 +39,84 @@ const routes = {
                                 Login
                             </button>
 
+                            <a href="#register" class="btn btn-outline-success w-100 mt-2">
+                                <i class="bi bi-person-plus"></i>
+                                Buat Akun Baru
+                            </a>
+
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    `,
+
+    register: `
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+
+                        <h4 class="text-center mb-4">
+                            <i class="bi bi-person-plus-fill text-success"></i>
+                            Buat Akun Baru
+                        </h4>
+
+                        <form id="registerForm">
+
+                            <div class="mb-3">
+                                <label class="form-label">Username</label>
+                                <input 
+                                    type="text" 
+                                    id="registerUsername" 
+                                    class="form-control" 
+                                    placeholder="Masukkan username"
+                                    required
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Email</label>
+                                <input 
+                                    type="email" 
+                                    id="registerEmail" 
+                                    class="form-control" 
+                                    placeholder="Masukkan email"
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Password</label>
+                                <input 
+                                    type="password" 
+                                    id="registerPassword" 
+                                    class="form-control" 
+                                    placeholder="Masukkan password"
+                                    required
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Konfirmasi Password</label>
+                                <input 
+                                    type="password" 
+                                    id="registerPassword2" 
+                                    class="form-control" 
+                                    placeholder="Ulangi password"
+                                    required
+                                >
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100 mb-2">
+                                <i class="bi bi-person-plus"></i>
+                                Daftar
+                            </button>
+
+                            <a href="#login" class="btn btn-outline-primary w-100">
+                                Sudah punya akun? Login
+                            </a>
+
                         </form>
 
                     </div>
@@ -180,12 +258,17 @@ function handleRouting() {
 
     appContent.innerHTML = routes[currentPage] || routes.login;
 
+    updateNavigation();
+
     if (currentPage === "login") {
         setupLoginForm();
     }
 
+    if (currentPage === "register") {
+        setupRegisterForm();
+    }
+
     if (currentPage === "dashboard") {
-        updateNavigation();
         loadDashboardData("my_reports", 1);
     }
 }

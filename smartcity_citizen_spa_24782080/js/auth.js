@@ -37,3 +37,32 @@ function logout() {
 
     window.location.hash = "#login";
 }
+
+function setupRegisterForm() {
+    const registerForm = document.getElementById("registerForm");
+
+    if (!registerForm) return;
+
+    registerForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+
+        const username = document.getElementById("registerUsername").value;
+        const email = document.getElementById("registerEmail").value;
+        const password = document.getElementById("registerPassword").value;
+        const password2 = document.getElementById("registerPassword2").value;
+
+        const result = await requestAPI("/auth/api/register/", "POST", {
+            username,
+            email,
+            password,
+            password2,
+        });
+
+        if (result.ok) {
+            alert("Akun berhasil dibuat. Silakan login.");
+            window.location.hash = "#login";
+        } else {
+            alert(result.data.detail || "Registrasi gagal.");
+        }
+    });
+}
