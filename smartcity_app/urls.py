@@ -1,47 +1,74 @@
 """
-URL configuration for npm_24782080_iet_2026 project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+URL configuration for smartcity_app project.
 """
+
 from django.contrib import admin
-from django.urls import path, include
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.urls import include, path
+
+from django_scalar import views as scalar_views
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularSwaggerView,
+)
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 
 urlpatterns = [
+    # Django Admin
+    path("admin/", admin.site.urls),
 
-    path('admin/', admin.site.urls),
+    # Main App
+    path("", include("main_app.urls")),
 
-    # MAIN APP
-    path('', include('main_app.urls')),
-
-    # DASHBOARD
-    path('dashboard/', include('dashboard.urls')),
+    # Dashboard
+    path("dashboard/", include("dashboard.urls")),
 
     # DRF API
-    path('api/', include('main_app.api_urls')),
+    path("api/", include("main_app.api_urls")),
 
-    # JWT TOKEN
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # JWT Token
+    path(
+        "api/token/",
+        TokenObtainPairView.as_view(),
+        name="token_obtain_pair",
+    ),
+    path(
+        "api/token/refresh/",
+        TokenRefreshView.as_view(),
+        name="token_refresh",
+    ),
 
-    # OTHER APPS
-    path('about/', include('about.urls')),
-    path('contacts/', include('contacts.urls')),
+    # OpenAPI Schema
+    path(
+        "api/schema/",
+        SpectacularAPIView.as_view(),
+        name="schema",
+    ),
 
-    # AUTH
-    path('auth/', include('usermanagement_24782080.urls')),
+    # Swagger UI
+    path(
+        "api/docs/swagger/",
+        SpectacularSwaggerView.as_view(url_name="schema"),
+        name="swagger-ui",
+    ),
 
+    # Scalar UI
+    path(
+    "api/docs/scalar/",
+    scalar_views.scalar_viewer,
+    name="scalar-ui",
+    ),
+    
+    # Other Apps
+    path("about/", include("about.urls")),
+    path("contacts/", include("contacts.urls")),
+
+    # Authentication
+    path(
+        "auth/",
+        include("usermanagement_24782080.urls"),
+    ),
 ]
-
