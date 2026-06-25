@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
 from django.db.models import Count
 
@@ -34,6 +35,27 @@ def home(request):
 
 
 # =========================
+# REPORT SEARCH
+# =========================
+def report_search(request):
+
+    if not request.user.is_authenticated:
+        raise PermissionDenied
+
+    if not request.user.is_admin:
+        raise PermissionDenied
+
+    reports = Report.objects.filter(
+        title__icontains=request.GET.get('q', '')
+    )
+
+    return render(
+        request,
+        'main_app/report_list.html',
+        {'reports': reports}
+    )
+
+# =========================
 # REPORT LIST
 # =========================
 class ReportListView(LoginRequiredMixin, ListView):
@@ -43,6 +65,16 @@ class ReportListView(LoginRequiredMixin, ListView):
     context_object_name = 'reports'
     paginate_by = 5
     ordering = ['-created_at']
+
+    def dispatch(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        if not request.user.is_admin:
+            return redirect('home')
+
+        return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
 
@@ -54,7 +86,6 @@ class ReportListView(LoginRequiredMixin, ListView):
             queryset = queryset.filter(title__icontains=query)
 
         return queryset
-
 
 # =========================
 # CREATE REPORT
@@ -68,6 +99,9 @@ class ReportCreateView(LoginRequiredMixin, CreateView):
 
     def dispatch(self, request, *args, **kwargs):
 
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
         if not request.user.is_admin:
             messages.error(request, "Hanya admin yang bisa menambah laporan")
             return redirect('report_list')
@@ -80,6 +114,11 @@ class ReportCreateView(LoginRequiredMixin, CreateView):
 
         return super().form_valid(form)
 
+    def form_invalid(self, form):
+
+        print("FORM ERROR =", form.errors)
+
+        return super().form_invalid(form)
 
 # =========================
 # DETAIL REPORT
@@ -89,6 +128,16 @@ class ReportDetailView(LoginRequiredMixin, DetailView):
     model = Report
     template_name = 'main_app/report_detail.html'
 
+    def dispatch(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
+        if not request.user.is_admin:
+            messages.error(request, "Hanya admin yang bisa melihat detail")
+            return redirect('report_list')
+
+        return super().dispatch(request, *args, **kwargs)
 
 # =========================
 # UPDATE REPORT
@@ -102,6 +151,9 @@ class ReportUpdateView(LoginRequiredMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
 
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
+
         if not request.user.is_admin:
             messages.error(request, "Hanya admin yang bisa update")
             return redirect('report_list')
@@ -114,7 +166,6 @@ class ReportUpdateView(LoginRequiredMixin, UpdateView):
 
         return super().form_valid(form)
 
-
 # =========================
 # DELETE REPORT
 # =========================
@@ -125,6 +176,9 @@ class ReportDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('report_list')
 
     def dispatch(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
 
         if not request.user.is_admin:
             messages.error(request, "Hanya admin yang bisa menghapus")
@@ -145,6 +199,9 @@ class ReportDeleteView(LoginRequiredMixin, DeleteView):
 class ReportUpdateStatusView(LoginRequiredMixin, View):
 
     def dispatch(self, request, *args, **kwargs):
+
+        if not request.user.is_authenticated:
+            return self.handle_no_permission()
 
         if not request.user.is_admin:
             messages.error(request, "Hanya admin yang bisa update status")

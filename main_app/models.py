@@ -12,11 +12,19 @@ STATUS_CHOICES = [
 
 
 CATEGORY_CHOICES = [
+    ('Fasilitas Umum', 'Fasilitas Umum'),
+
     ('infra', 'Infrastruktur'),
     ('kebersihan', 'Kebersihan'),
     ('lingkungan', 'Lingkungan'),
     ('keamanan', 'Keamanan'),
     ('transportasi', 'Transportasi'),
+
+    ('Infrastruktur', 'Infrastruktur'),
+    ('Kebersihan', 'Kebersihan'),
+    ('Lingkungan', 'Lingkungan'),
+    ('Keamanan', 'Keamanan'),
+    ('Transportasi', 'Transportasi'),
 ]
 
 

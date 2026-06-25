@@ -6,7 +6,7 @@ from .api_views import ReportViewSet
 router = DefaultRouter()
 
 router.register(
-    r'reports',
+    r'report',
     ReportViewSet,
     basename='report'
 )

@@ -3,13 +3,21 @@ from .models import Report, CATEGORY_CHOICES
 
 class ReportForm(forms.ModelForm):
 
-    # 🔥 FIX CATEGORY DI SINI
-    category = forms.ChoiceField(
-        choices=[('', 'Pilih Kategori')] + CATEGORY_CHOICES,
-        widget=forms.Select(attrs={
-            'class': 'form-select'
-        })
-    )
+    def clean_category(self):
+
+        category = self.cleaned_data['category']
+
+        mapping = {
+            'Infrastruktur': 'infra',
+            'Kebersihan': 'kebersihan',
+            'Lingkungan': 'lingkungan',
+            'Keamanan': 'keamanan',
+            'Transportasi': 'transportasi',
+        }
+
+        return mapping.get(category, category)
+
+    category = forms.CharField()
 
     class Meta:
         model = Report

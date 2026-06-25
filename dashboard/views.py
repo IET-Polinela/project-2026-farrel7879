@@ -1,11 +1,21 @@
 from django.views.generic import TemplateView
+from django.contrib.auth.mixins import UserPassesTestMixin
 from django.http import JsonResponse
 from django.db.models import Count
 from main_app.models import Report
 
-class DashboardView(TemplateView):
+class DashboardView(UserPassesTestMixin, TemplateView):
     template_name = 'dashboard/home.html'
 
+    def test_func(self):
+        return (
+            self.request.user.is_authenticated
+            and self.request.user.is_staff
+        )
+
+    def handle_no_permission(self):
+        from django.shortcuts import redirect
+        return redirect('/')
 
 def dashboard_data(request):
 

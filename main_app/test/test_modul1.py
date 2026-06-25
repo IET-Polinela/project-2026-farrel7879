@@ -185,4 +185,17 @@ class AuthenticationTests(APITestCase):
             Cek apakah user memiliki is_staff=True. Jika tidak, Django 
             memberikan respons HTTP 302.
         """
-        raise NotImplementedError("Skenario AUTH03 belum diimplementasi.")
+        # Login sebagai warga biasa
+        self.client.login(
+            username='warga_test',
+            password='Password123!'
+        )
+
+        # Coba akses halaman admin
+        response = self.client.get('/dashboard/')
+
+        # Harus ditolak (redirect)
+        self.assertEqual(
+            response.status_code,
+            302
+        )

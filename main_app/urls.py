@@ -2,6 +2,7 @@ from django.urls import path
 
 from .views import (
     home,
+    report_search,
     ReportListView,
     ReportDetailView,
     ReportCreateView,
@@ -22,6 +23,12 @@ urlpatterns = [
         'reports/',
         ReportListView.as_view(),
         name='report_list'
+    ),
+
+    path(
+        'reports/search/',
+        report_search,
+        name='report_search'
     ),
 
     path(
@@ -63,7 +70,7 @@ urlpatterns = [
 
     # DETAIL API
     path(
-        'api/report/<int:pk>/',
+        'api/report-detail/<int:pk>/',
         report_detail_api,
         name='report_api'
     ),
