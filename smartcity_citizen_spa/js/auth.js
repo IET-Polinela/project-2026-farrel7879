@@ -1,4 +1,8 @@
+// ============================================================================
+// LOGIN
+// ============================================================================
 function setupLoginForm() {
+
     const loginForm = document.getElementById("loginForm");
 
     if (!loginForm) {
@@ -6,6 +10,7 @@ function setupLoginForm() {
     }
 
     loginForm.addEventListener("submit", async function (event) {
+
         event.preventDefault();
 
         const username = document.getElementById("loginUsername").value;
@@ -16,34 +21,57 @@ function setupLoginForm() {
             password: password,
         });
 
-        if (result.ok) {
+        if (result && result.ok) {
+
+            // Simpan token sesuai spesifikasi Playwright
             localStorage.setItem("access_token", result.data.access);
             localStorage.setItem("refresh_token", result.data.refresh);
+            localStorage.setItem("username", username);
 
             alert("Login berhasil");
 
+            // Redirect ke dashboard
             window.location.hash = "#dashboard";
-        } else {
+
+        } else if (result) {
+
             alert("Login gagal. Periksa username dan password.");
+
         }
+
     });
+
 }
 
+// ============================================================================
+// LOGOUT
+// ============================================================================
 function logout() {
+
+    // Hapus token satu per satu agar sesuai AUTH-05 & AUTH-06
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("username");
 
     alert("Logout berhasil");
 
     window.location.hash = "#login";
+
 }
 
+// ============================================================================
+// REGISTER
+// ============================================================================
 function setupRegisterForm() {
+
     const registerForm = document.getElementById("registerForm");
 
-    if (!registerForm) return;
+    if (!registerForm) {
+        return;
+    }
 
     registerForm.addEventListener("submit", async function (event) {
+
         event.preventDefault();
 
         const username = document.getElementById("registerUsername").value;
@@ -52,17 +80,24 @@ function setupRegisterForm() {
         const password2 = document.getElementById("registerPassword2").value;
 
         const result = await requestAPI("/auth/api/register/", "POST", {
-            username,
-            email,
-            password,
-            password2,
+            username: username,
+            email: email,
+            password: password,
+            password2: password2,
         });
 
-        if (result.ok) {
+        if (result && result.ok) {
+
             alert("Akun berhasil dibuat. Silakan login.");
+
             window.location.hash = "#login";
-        } else {
+
+        } else if (result) {
+
             alert(result.data.detail || "Registrasi gagal.");
+
         }
+
     });
+
 }

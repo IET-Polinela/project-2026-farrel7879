@@ -11,19 +11,20 @@ from .permissions import IsOwnerAndDraftOrReadOnly
 from .serializers import ReportSerializer
 
 
-# =========================
-# PAGINATION LAB 12
-# =========================
+# ==========================================================
+# PAGINATION
+# ==========================================================
 class ReportPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 1000
 
 
-# =========================
-# CITIZEN PERMISSION
-# =========================
+# ==========================================================
+# PERMISSION CITIZEN
+# ==========================================================
 class IsCitizen(permissions.BasePermission):
+
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated
@@ -31,80 +32,156 @@ class IsCitizen(permissions.BasePermission):
         )
 
 
-# =========================
+# ==========================================================
 # REPORT VIEWSET
-# =========================
+# ==========================================================
 class ReportViewSet(viewsets.ModelViewSet):
+
     serializer_class = ReportSerializer
     pagination_class = ReportPagination
 
+    # ------------------------------------------------------
+    # QUERYSET
+    # ------------------------------------------------------
     def get_queryset(self):
+
         user = self.request.user
 
         if not user.is_authenticated:
             return Report.objects.none()
 
-        queryset = Report.objects.all().order_by("-updated_at")
+        queryset = Report.objects.select_related(
+            "reporter"
+        ).order_by("-updated_at")
+
         tab = self.request.query_params.get("tab")
 
-        # TAB: LAPORAN SAYA
-        # Menampilkan semua laporan milik user login, termasuk DRAFT
+        # ======================
+        # MY REPORTS
+        # ======================
         if tab == "my_reports":
             return queryset.filter(reporter=user)
 
-        # TAB: FEED KOTA
-        # Menampilkan laporan warga lain yang bukan DRAFT
+        # ======================
+        # FEED KOTA
+        # ======================
         if tab == "feed":
-            return queryset.filter(
-                ~Q(reporter=user),
-                ~Q(status="DRAFT"),
+            return queryset.exclude(
+                status="DRAFT"
             )
 
+        # ======================
         # DEFAULT
-        # Citizen melihat laporan sendiri + laporan publik non-DRAFT
-        if not user.is_admin:
-            return queryset.filter(
-                Q(reporter=user) | ~Q(status="DRAFT")
-            )
+        # ======================
+        return queryset.filter(
+            Q(reporter=user) |
+            ~Q(status="DRAFT")
+        )
 
-        # Admin hanya melihat laporan yang sudah diajukan
-        return queryset.exclude(status="DRAFT")
-
+    # ------------------------------------------------------
+    # PERMISSIONS
+    # ------------------------------------------------------
     def get_permissions(self):
-        if self.action in ["list", "retrieve"]:
-            return [permissions.IsAuthenticated()]
-
-        if self.action == "create":
-            return [
-                permissions.IsAuthenticated(),
-                IsCitizen(),
-            ]
 
         if self.action in [
+            "list",
+            "retrieve",
+        ]:
+            permission_classes = [
+                permissions.IsAuthenticated
+            ]
+
+        elif self.action == "create":
+            permission_classes = [
+                permissions.IsAuthenticated,
+                IsCitizen,
+            ]
+
+        elif self.action in [
             "update",
             "partial_update",
             "destroy",
         ]:
-            return [
-                permissions.IsAuthenticated(),
-                IsOwnerAndDraftOrReadOnly(),
+            permission_classes = [
+                permissions.IsAuthenticated,
+                IsOwnerAndDraftOrReadOnly,
             ]
 
-        if self.action == "update_status":
-            return [
-                permissions.IsAuthenticated(),
-                permissions.IsAdminUser(),
+        elif self.action == "update_status":
+            permission_classes = [
+                permissions.IsAdminUser,
             ]
 
-        return [permissions.IsAuthenticated()]
+        else:
+            permission_classes = [
+                permissions.IsAuthenticated,
+            ]
 
+        return [
+            permission()
+            for permission in permission_classes
+        ]
+
+    # ------------------------------------------------------
+    # SERIALIZER CONTEXT
+    # ------------------------------------------------------
+    def get_serializer_context(self):
+
+        context = super().get_serializer_context()
+
+        context["request"] = self.request
+
+        return context
+
+    # ------------------------------------------------------
+    # CREATE
+    # ------------------------------------------------------
     def perform_create(self, serializer):
-        # Laporan baru otomatis menjadi DRAFT
-        serializer.save(
-            reporter=self.request.user,
-            status="DRAFT",
+
+        requested_status = self.request.data.get(
+            "status",
+            "DRAFT"
         )
 
+        if requested_status not in [
+            "DRAFT",
+            "REPORTED",
+        ]:
+            requested_status = "DRAFT"
+
+        serializer.save(
+            reporter=self.request.user,
+            status=requested_status,
+        )
+
+    # ------------------------------------------------------
+    # UPDATE
+    # ------------------------------------------------------
+    def perform_update(self, serializer):
+
+        report = self.get_object()
+
+        requested_status = self.request.data.get(
+            "status",
+            report.status,
+        )
+
+        if report.status == "DRAFT":
+
+            if requested_status in [
+                "DRAFT",
+                "REPORTED",
+            ]:
+                serializer.save(
+                    status=requested_status
+                )
+                return
+
+        serializer.save()
+
+    # ------------------------------------------------------
+    # UPDATE STATUS (ADMIN)
+    # ------------------------------------------------------
     @extend_schema(exclude=True)
     @action(
         detail=True,
@@ -112,7 +189,9 @@ class ReportViewSet(viewsets.ModelViewSet):
         url_path="update-status",
     )
     def update_status(self, request, pk=None):
+
         report = self.get_object()
+
         new_status = request.data.get("status")
 
         allowed_status = [
@@ -123,13 +202,22 @@ class ReportViewSet(viewsets.ModelViewSet):
         ]
 
         if new_status not in allowed_status:
+
             return Response(
-                {"detail": "Status tidak valid."},
+                {
+                    "detail": "Status tidak valid."
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         report.status = new_status
-        report.save(update_fields=["status", "updated_at"])
+
+        report.save(
+            update_fields=[
+                "status",
+                "updated_at",
+            ]
+        )
 
         serializer = self.get_serializer(report)
 

@@ -1,5 +1,4 @@
 from django.urls import path
-
 from .views import (
     home,
     report_search,
@@ -25,8 +24,9 @@ urlpatterns = [
         name='report_list'
     ),
 
+    # LIVE SEARCH (Sudah disinkronkan tanpa 'reports/')
     path(
-        'reports/search/',
+        'search/',
         report_search,
         name='report_search'
     ),

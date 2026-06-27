@@ -40,20 +40,30 @@ def home(request):
 def report_search(request):
 
     if not request.user.is_authenticated:
-        raise PermissionDenied
+        return JsonResponse({'error': 'Unauthenticated'}, status=403)
 
     if not request.user.is_admin:
-        raise PermissionDenied
+        return JsonResponse({'error': 'Permission denied'}, status=403)
 
-    reports = Report.objects.filter(
-        title__icontains=request.GET.get('q', '')
-    )
+    # Ambil keyword pencarian dari parameter 'q'
+    query = request.GET.get('q', '')
+    reports = Report.objects.filter(title__icontains=query)
 
-    return render(
-        request,
-        'main_app/report_list.html',
-        {'reports': reports}
-    )
+    # Susun data menjadi bentuk list of dictionaries untuk format JSON
+    results = []
+    for r in reports:
+        results.append({
+            'id': r.id,
+            'title': r.title,
+            'category': r.category,
+            # Ambil label display choice jika ada, kalau tidak pakai value aslinya
+            'category_display': r.get_category_display() if hasattr(r, 'get_category_display') else r.category,
+            'location': r.location,
+            'status': r.status if r.status else 'REPORTED',
+        })
+
+    # Kembalikan dalam bentuk JsonResponse sesuai ekspektasi Playwright & Frontend JS
+    return JsonResponse({'results': results})
 
 # =========================
 # REPORT LIST

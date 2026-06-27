@@ -17,58 +17,88 @@ from rest_framework_simplejwt.views import (
 
 
 urlpatterns = [
-    # Django Admin
+
+    # ==========================================================
+    # DJANGO ADMIN
+    # ==========================================================
     path("admin/", admin.site.urls),
 
-    # Main App
+    # ==========================================================
+    # MAIN APP
+    # ==========================================================
     path("", include("main_app.urls")),
 
-    # Dashboard
+    # ==========================================================
+    # DASHBOARD
+    # ==========================================================
     path("dashboard/", include("dashboard.urls")),
 
+    # ==========================================================
     # DRF API
+    # ==========================================================
     path("api/", include("main_app.api_urls")),
 
-    # JWT Token
+    # ==========================================================
+    # JWT
+    # ==========================================================
     path(
         "api/token/",
         TokenObtainPairView.as_view(),
         name="token_obtain_pair",
     ),
+
     path(
         "api/token/refresh/",
         TokenRefreshView.as_view(),
         name="token_refresh",
     ),
 
-    # OpenAPI Schema
+    # ==========================================================
+    # OPEN API
+    # ==========================================================
     path(
         "api/schema/",
         SpectacularAPIView.as_view(),
         name="schema",
     ),
 
-    # Swagger UI
     path(
         "api/docs/swagger/",
         SpectacularSwaggerView.as_view(url_name="schema"),
         name="swagger-ui",
     ),
 
-    # Scalar UI
     path(
-    "api/docs/scalar/",
-    scalar_views.scalar_viewer,
-    name="scalar-ui",
+        "api/docs/scalar/",
+        scalar_views.scalar_viewer,
+        name="scalar-ui",
     ),
-    
-    # Other Apps
+
+    # ==========================================================
+    # OTHER APPS
+    # ==========================================================
     path("about/", include("about.urls")),
     path("contacts/", include("contacts.urls")),
 
-    # Authentication
+    # ==========================================================
+    # AUTH
+    # ==========================================================
+
+    # endpoint:
+    # /auth/login/
+    # /auth/logout/
+    # /auth/register/
     path(
         "auth/",
+        include("usermanagement_24782080.urls"),
+    ),
+
+    # endpoint:
+    # /login/
+    # /logout/
+    # /register/
+    path(
+        "",
         include("usermanagement_24782080.urls"),
     ),
 ]

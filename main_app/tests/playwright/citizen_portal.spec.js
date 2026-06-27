@@ -65,7 +65,7 @@ const BASE_URL = 'http://localhost:8000';
 //   Opsi 1 (Live Server): 'http://127.0.0.1:5500/smartcity_citizen_spa/index.html'
 //   Opsi 2 (http-server):  'http://localhost:8080/index.html'
 //   Opsi 3 (file://):      'file:///C:/Users/.../smartcity_citizen_spa/index.html'
-const SPA_URL = 'http://127.0.0.1:5500/smartcity_citizen_spa/index.html';
+const SPA_URL = 'http://localhost:8080/index.html';
 
 // ---------------------------------------------------------------------------
 // KREDENSIAL TEST 
@@ -215,7 +215,7 @@ async function clearAuthTokens(page) {
 /**
  * mockSPAApiUrl - Memastikan SEMUA request API di SPA mengarah ke localhost:8000
  *
- * Menggunakan wildcard '**/api/**', fungsi ini akan mencegat request ke domain apapun
+ * Menggunakan wildcard '**//**', fungsi ini akan mencegat request ke domain apapun
  * (misal: http://103.151.63.71:8013/api, http://192.168.1.5/api, dll)
  * dan membelokkannya secara paksa ke server Django lokal di http://localhost:8000/api.
  *

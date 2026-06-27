@@ -3,12 +3,12 @@ from rest_framework.routers import DefaultRouter
 from .api_views import ReportViewSet
 
 
-router = DefaultRouter()
+router = DefaultRouter(trailing_slash=True)
 
 router.register(
-    r'report',
+    r"reports",
     ReportViewSet,
-    basename='report'
+    basename="reports",
 )
 
 urlpatterns = router.urls

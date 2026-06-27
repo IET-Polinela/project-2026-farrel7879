@@ -23,7 +23,7 @@
 </div>
 
 <!-- 🔍 SEARCH -->
-<form method="GET">
+<form method="GET" onsubmit="event.preventDefault();">
     <input type="hidden" name="page" value="1">
 
     <input 
@@ -48,7 +48,7 @@
 </tr>
 </thead>
 
-<tbody>
+<tbody id="reportTableBody">
 
 {% for report in reports %}
 <tr class="report-row" data-title="{{ report.title|lower }}">
@@ -177,51 +177,42 @@ Last
 <!-- 🔥 SCRIPT -->
 <script>
 document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById('searchInput');
+    const tableBody = document.getElementById('reportTableBody');
 
-    // 🔍 LIVE SEARCH (frontend)
-    document.getElementById('searchInput').addEventListener('keyup', function() {
+    if (searchInput && tableBody) {
+        searchInput.addEventListener('input', function() {
+            const keyword = this.value;
 
-        let keyword = this.value.toLowerCase();
-
-        document.querySelectorAll('.report-row').forEach(row => {
-
-            let title = row.getAttribute('data-title');
-
-            if (title.includes(keyword)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
-
-        });
-
-    });
-
-    // 🔥 MODAL DETAIL
-    document.querySelectorAll('.detail-btn').forEach(btn => {
-
-        btn.addEventListener('click', function() {
-
-            let id = this.getAttribute('data-id');
-
-            fetch(`/api/report/${id}/`)
+            // Wajib menggunakan endpoint /search/ dengan query string '?q='
+            fetch(`/search/?q=${encodeURIComponent(keyword)}`)
             .then(res => res.json())
             .then(data => {
+                tableBody.innerHTML = ''; // Kosongkan baris tabel lama
 
-                document.getElementById('modalTitle').innerText = data.title;
-                document.getElementById('modalDesc').innerText = data.description;
-                document.getElementById('modalLocation').innerText = data.location;
-                document.getElementById('modalStatus').innerText = data.status;
+                // Susun ulang baris tabel berdasarkan array 'results' dari JSON backend
+                data.results.forEach(report => {
+                    const row = document.createElement('tr');
+                    row.className = 'report-row';
+                    row.setAttribute('data-title', report.title.toLowerCase());
 
-                let modal = new bootstrap.Modal(document.getElementById('detailModal'));
-                modal.show();
-
-            });
-
+                    row.innerHTML = `
+                        <td>${report.title}</td>
+                        <td>${report.category_display || report.category}</td>
+                        <td>${report.location}</td>
+                        <td><span class="badge bg-secondary">${report.status}</span></td>
+                        <td>
+                        <button class="btn btn-sm btn-primary detail-btn" data-id="${report.id}">Detail</button>
+                            <a href="/reports/${report.id}/edit/" class="btn btn-sm btn-warning">Edit</a>
+                            <a href="/reports/${report.id}/delete/" class="btn btn-sm btn-danger">Delete</a>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            })
+            .catch(err => console.error('Error fetching search data:', err));
         });
-
-    });
-
+    }
 });
 </script>
 
