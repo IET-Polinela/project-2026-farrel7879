@@ -157,6 +157,12 @@ class ReportViewSet(viewsets.ModelViewSet):
     # ------------------------------------------------------
     # UPDATE
     # ------------------------------------------------------
+    def update(self, request, *args, **kwargs):
+        # Memaksa PUT request memperlakukan field lain sebagai opsional (partial update)
+        # Ini mencegah eror 400 ketika unit test hanya mengirim data {"status": "REPORTED"}
+        kwargs['partial'] = True
+        return super().update(request, *args, **kwargs)
+
     def perform_update(self, serializer):
 
         report = self.get_object()

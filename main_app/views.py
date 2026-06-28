@@ -119,9 +119,9 @@ class ReportCreateView(LoginRequiredMixin, CreateView):
         return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
-
+        
         messages.success(self.request, "Laporan berhasil ditambahkan")
-
+        form.instance.reporter = self.request.user
         return super().form_valid(form)
 
     def form_invalid(self, form):
