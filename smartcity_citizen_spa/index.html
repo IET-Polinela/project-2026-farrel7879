@@ -145,17 +145,24 @@
                                 Kategori
                             </label>
 
+                            <!--
+                                PENTING: value harus sama persis dengan
+                                CATEGORY_CHOICES di main_app/models.py
+                                (huruf kecil, gunakan underscore), bukan
+                                label tampilan. Backend menolak label
+                                seperti "Fasilitas Umum" sebagai value.
+                            -->
                             <select
                                 id="inputCategory"
                                 class="form-select"
                                 required>
 
-                                <option value="Fasilitas Umum">Fasilitas Umum</option>
-                                <option value="Infrastruktur">Infrastruktur</option>
-                                <option value="Kebersihan">Kebersihan</option>
-                                <option value="Lingkungan">Lingkungan</option>
-                                <option value="Keamanan">Keamanan</option>
-                                <option value="Transportasi">Transportasi</option>
+                                <option value="fasilitas_umum">Fasilitas Umum</option>
+                                <option value="infra">Infrastruktur</option>
+                                <option value="kebersihan">Kebersihan</option>
+                                <option value="lingkungan">Lingkungan</option>
+                                <option value="keamanan">Keamanan</option>
+                                <option value="transportasi">Transportasi</option>
 
                             </select>
 

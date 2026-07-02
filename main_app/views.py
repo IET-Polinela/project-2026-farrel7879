@@ -3,6 +3,7 @@ from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views import View
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.http import JsonResponse
@@ -244,6 +245,23 @@ class ReportUpdateStatusView(LoginRequiredMixin, View):
                 messages.error(request, "Transisi status tidak valid")
 
         return redirect('report_list')
+
+
+# =========================
+# DASHBOARD HALAMAN (HTML)
+# =========================
+@login_required
+@user_passes_test(lambda u: u.is_admin, login_url='home')
+def dashboard(request):
+    """
+    Me-render halaman dashboard admin yang berisi Chart.js
+    (statusChart & categoryChart) serta dua tabel ringkasan
+    (reportedTable & resolvedTable).
+
+    Data aktual untuk chart & tabel diambil oleh JavaScript di
+    dashboard.html melalui fetch ke endpoint /dashboard/data/.
+    """
+    return render(request, 'main_app/dashboard.html')
 
 
 # =========================

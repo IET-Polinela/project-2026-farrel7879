@@ -1,0 +1,230 @@
+{% extends 'base.html' %}
+
+{% block breadcrumb %}
+<nav>
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item">
+        <a href="{% url 'home' %}">Home</a>
+    </li>
+    <li class="breadcrumb-item active">Dashboard</li>
+  </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+
+<style>
+.dash-card {
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+    height: 100%;
+}
+
+.dash-card h6 {
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.chart-wrapper {
+    position: relative;
+    height: 280px;
+}
+
+.table-mini th, .table-mini td {
+    font-size: 14px;
+}
+</style>
+
+<h2 class="mb-4">📊 Dashboard Admin</h2>
+
+<!-- 🔥 CHARTS -->
+<div class="row g-4 mb-4">
+
+    <div class="col-md-6">
+        <div class="dash-card">
+            <h6>Distribusi Status Laporan</h6>
+            <div class="chart-wrapper">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="dash-card">
+            <h6>Distribusi Kategori Laporan</h6>
+            <div class="chart-wrapper">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 🔥 TABLES -->
+<div class="row g-4">
+
+    <div class="col-md-6">
+        <div class="dash-card">
+            <h6>🆕 5 Laporan Terbaru (Reported)</h6>
+            <table id="reportedTable" class="table table-sm table-mini table-hover">
+                <thead>
+                    <tr>
+                        <th>Judul</th>
+                        <th>Lokasi</th>
+                        <th>Tanggal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="dash-card">
+            <h6>✅ 5 Laporan Terbaru (Resolved)</h6>
+            <table id="resolvedTable" class="table table-sm table-mini table-hover">
+                <thead>
+                    <tr>
+                        <th>Judul</th>
+                        <th>Lokasi</th>
+                        <th>Tanggal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Diisi oleh JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<!-- 🔥 CHART.JS LIBRARY (via CDN jsdelivr) -->
+<script
+    src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"
+    onerror="console.error('Chart.js gagal dimuat dari CDN. Cek koneksi internet atau gunakan versi static lokal.')"
+></script>
+
+<!-- 🔥 SCRIPT DASHBOARD -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Guard: pastikan library Chart.js berhasil dimuat dari CDN
+    // sebelum mencoba menggunakannya. Tanpa ini, kegagalan CDN akan
+    // memunculkan ReferenceError yang membingungkan di console.
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js tidak tersedia (window.Chart undefined). ' +
+                       'Kemungkinan CDN gagal dimuat — periksa koneksi internet.');
+        return;
+    }
+
+    fetch('/dashboard/data/')
+    .then(res => res.json())
+    .then(data => {
+
+        // ---------------------------------------------------------------
+        // 1. STATUS CHART (Doughnut)
+        // ---------------------------------------------------------------
+        const statusLabels = data.status.map(item => item.status);
+        const statusTotals  = data.status.map(item => item.total);
+
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusTotals,
+                    backgroundColor: [
+                        '#6c757d', // REPORTED
+                        '#0dcaf0', // VERIFIED
+                        '#ffc107', // IN_PROGRESS
+                        '#198754'  // RESOLVED
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+
+        // ---------------------------------------------------------------
+        // 2. CATEGORY CHART (Bar)
+        // ---------------------------------------------------------------
+        const categoryLabels = data.category.map(item => item.category);
+        const categoryTotals = data.category.map(item => item.total);
+
+        new Chart(document.getElementById('categoryChart'), {
+            type: 'bar',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    label: 'Jumlah Laporan',
+                    data: categoryTotals,
+                    backgroundColor: '#0a2540'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+
+        // ---------------------------------------------------------------
+        // 3. TABEL: 5 Laporan Terbaru REPORTED
+        // ---------------------------------------------------------------
+        const reportedBody = document.querySelector('#reportedTable tbody');
+        reportedBody.innerHTML = '';
+
+        if (data.latest_reported.length === 0) {
+            reportedBody.innerHTML = '<tr><td colspan="3" class="text-muted text-center">Tidak ada data</td></tr>';
+        } else {
+            data.latest_reported.forEach(r => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${r.title}</td>
+                    <td>${r.location}</td>
+                    <td>${new Date(r.created_at).toLocaleDateString('id-ID')}</td>
+                `;
+                reportedBody.appendChild(row);
+            });
+        }
+
+        // ---------------------------------------------------------------
+        // 4. TABEL: 5 Laporan Terbaru RESOLVED
+        // ---------------------------------------------------------------
+        const resolvedBody = document.querySelector('#resolvedTable tbody');
+        resolvedBody.innerHTML = '';
+
+        if (data.latest_resolved.length === 0) {
+            resolvedBody.innerHTML = '<tr><td colspan="3" class="text-muted text-center">Tidak ada data</td></tr>';
+        } else {
+            data.latest_resolved.forEach(r => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${r.title}</td>
+                    <td>${r.location}</td>
+                    <td>${new Date(r.created_at).toLocaleDateString('id-ID')}</td>
+                `;
+                resolvedBody.appendChild(row);
+            });
+        }
+
+    })
+    .catch(err => console.error('Error fetching dashboard data:', err));
+
+});
+</script>
+
+{% endblock %}

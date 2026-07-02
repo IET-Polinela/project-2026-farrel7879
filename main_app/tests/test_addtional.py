@@ -5,24 +5,9 @@ from rest_framework import status
 from django.contrib.auth import get_user_model
 from main_app.models import Report
 
-# ─────────────────────────────────────────────────────────────────────────────
-# PENJELASAN: get_user_model()
-# ─────────────────────────────────────────────────────────────────────────────
-# Django mendukung custom user model melalui setting AUTH_USER_MODEL.
-# Pada proyek ini, user model kustom didefinisikan di usermanagement.User.
-# Menggunakan get_user_model() memastikan kita selalu mereferensikan model
-# user yang benar, bukan django.contrib.auth.models.User bawaan.
-# ─────────────────────────────────────────────────────────────────────────────
 User = get_user_model()
 
-# =============================================================================
-# ADDITIONAL TESTS FOR 100% STATEMENT COVERAGE
-# =============================================================================
-
 class SerializerAndModelCoverageTests(APITestCase):
-    """
-    Kelas pengujian tambahan untuk menaikkan coverage model dan serializer.
-    """
     def setUp(self):
         self.warga = User.objects.create_user(
             username='warga_str_test',
@@ -31,9 +16,6 @@ class SerializerAndModelCoverageTests(APITestCase):
         )
 
     def test_report_model_str(self):
-        """
-        Menguji str(report) agar memanggil __str__ dan mengembalikan judul laporan.
-        """
         report = Report.objects.create(
             title='Laporan Str Uji',
             category='Lainnya',
@@ -45,10 +27,6 @@ class SerializerAndModelCoverageTests(APITestCase):
         self.assertEqual(str(report), 'Laporan Str Uji')
 
     def test_report_serializer_no_request_context(self):
-        """
-        Menguji serializer tanpa menyertakan request dalam context,
-        sehingga is_owner mengembalikan False.
-        """
         from mainapp.serializers import ReportSerializer
         report = Report.objects.create(
             title='Laporan Serializer Uji',
@@ -64,10 +42,6 @@ class SerializerAndModelCoverageTests(APITestCase):
 
 
 class MainAppMonolithicViewsCoverageTests(TestCase):
-    """
-    Menguji view monolitik di main_app/views.py untuk mencakup semua alur
-    dispatch, GET, POST, validasi form, dan API detail/pencarian non-DRF.
-    """
     def setUp(self):
         self.admin = User.objects.create_user(
             username='admin_mono',
@@ -83,7 +57,7 @@ class MainAppMonolithicViewsCoverageTests(TestCase):
         )
         self.report = Report.objects.create(
             title='Laporan Monolitik Uji',
-            category='Infrastruktur',
+            category='infra',  # FIX: pakai value bukan label
             description='Ada kerusakan infrastruktur.',
             location='Bandung',
             status='REPORTED',
@@ -160,7 +134,7 @@ class MainAppMonolithicViewsCoverageTests(TestCase):
         self.client.login(username='admin_mono', password='Password123!')
         payload = {
             'title': 'Laporan Form Baru',
-            'category': 'Infrastruktur',
+            'category': 'infra',  # FIX: pakai value 'infra', bukan label 'Infrastruktur'
             'description': 'Deskripsi baru.',
             'location': 'Jakarta',
             'status': 'DRAFT'
@@ -202,7 +176,7 @@ class MainAppMonolithicViewsCoverageTests(TestCase):
         self.client.login(username='admin_mono', password='Password123!')
         payload = {
             'title': 'Laporan Terupdate',
-            'category': 'Infrastruktur',
+            'category': 'infra',  # FIX: pakai value 'infra', bukan label 'Infrastruktur'
             'description': 'Deskripsi terupdate.',
             'location': 'Jakarta',
             'status': 'REPORTED'
@@ -238,20 +212,19 @@ class MainAppMonolithicViewsCoverageTests(TestCase):
         from main_app.views import ReportDeleteView
         from django.test import RequestFactory
         from django.contrib.messages.storage.fallback import FallbackStorage
-        
+
         factory = RequestFactory()
         request = factory.post(reverse('delete_report', kwargs={'pk': self.report.id}))
         request.user = self.admin
-        
-        # Setup session & messages middleware mocks
+
         setattr(request, 'session', {})
         messages_storage = FallbackStorage(request)
         setattr(request, '_messages', messages_storage)
-        
+
         view = ReportDeleteView()
         view.setup(request, pk=self.report.id)
         view.object = view.get_object()
-        
+
         response = view.delete(request)
         self.assertEqual(response.status_code, 302)
 

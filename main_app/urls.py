@@ -8,6 +8,7 @@ from .views import (
     ReportUpdateView,
     ReportDeleteView,
     ReportUpdateStatusView,
+    dashboard,
     dashboard_data,
     report_detail_api,
 )
@@ -59,6 +60,13 @@ urlpatterns = [
         'reports/<int:pk>/status/',
         ReportUpdateStatusView.as_view(),
         name='update_status'
+    ),
+
+    # DASHBOARD HALAMAN (HTML) — menampilkan Chart.js & tabel laporan
+    path(
+        'dashboard/',
+        dashboard,
+        name='dashboard'
     ),
 
     # DASHBOARD API

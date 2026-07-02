@@ -1,23 +1,8 @@
 from django import forms
-from .models import Report, CATEGORY_CHOICES
+from .models import Report
+
 
 class ReportForm(forms.ModelForm):
-
-    def clean_category(self):
-
-        category = self.cleaned_data['category']
-
-        mapping = {
-            'Infrastruktur': 'infra',
-            'Kebersihan': 'kebersihan',
-            'Lingkungan': 'lingkungan',
-            'Keamanan': 'keamanan',
-            'Transportasi': 'transportasi',
-        }
-
-        return mapping.get(category, category)
-
-    category = forms.CharField()
 
     class Meta:
         model = Report
@@ -27,6 +12,9 @@ class ReportForm(forms.ModelForm):
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Masukkan judul laporan'
+            }),
+            'category': forms.Select(attrs={
+                'class': 'form-select'
             }),
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
